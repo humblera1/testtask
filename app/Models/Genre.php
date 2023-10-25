@@ -24,7 +24,7 @@ class Genre extends Model
         return [
             'id' => $this->id,
             'name' => $this->name,
-//            'books' => Book::has('genres')->paginate($perPage = 5),
+            'books' => $this->books()->paginate($perPage = 5),
         ];
     }
 }

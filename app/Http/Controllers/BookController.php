@@ -58,25 +58,28 @@ class BookController extends Controller
     {
         $book = Book::find($id);
 
+        if (auth()->user()->id === $book->author_id) {
+
         $fields = $request->validate([
             'title' => ['string', 'unique:books', 'max:255'],
             'type' => [new Enum(BookTypeEnum::class)],
             'genre' => [Rule::in(Genre::pluck('name'))],
         ]);
 
-        if (auth()->user()->id === $book->author_id) {
-
             $book->update($request->all());
 
+            //Логика сохранения жанра книги: если передать новый жанр, которого у книги нет,
+            //он будет добавлен; если передать его повторно, он будет удалён
+
             if ($genre = Genre::where(['name' => $fields['genre']])->first()) {
-                $book->genres()->sync($genre->id);
+                $book->genres()->toggle($genre->id);
             }
 
             return $book;
         }
 
         return response([
-            'message' => 'this book belongs to another author',
+            'message' => 'This book belongs to another author. You can\'t edit or delete it',
             'status' => 'failed',
         ], 403);
 
@@ -94,25 +97,15 @@ class BookController extends Controller
             Book::destroy($id);
 
             return response([
-                'message' => 'book has been deleted',
+                'message' => 'Book has been deleted',
                 'status' => 'success',
             ], 200);
 
         }
 
         return response([
-            'message' => 'this book belongs to another author',
+            'message' => 'This book belongs to another author. You can\'t edit or delete it',
             'status' => 'failed',
         ], 403);
     }
-
-    /**
-     * Search for a books with specified author name
-     */
-//    public function search(string $author_username)
-//    {
-//        $author = Author::where(['username' => 'Test Author'])->get();
-//
-//        return Book::where(['author_id' => $author['id']])->get();
-//    }
 }

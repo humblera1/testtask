@@ -29,9 +29,6 @@ class Author extends Authenticatable
             'username' => $this->username,
             'email' => $this->email,
             'bookCount' => $this->books()->count(),
-            'created' => $this->created_at,
-            'updated' => $this->updated_at,
-
         ];
     }
 }

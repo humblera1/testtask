@@ -37,11 +37,9 @@ class Book extends Model
         return [
             'id' => $this->id,
             'title' => $this->title,
-            'genres' => $this->genres,
             'type' => $this->type,
             'author' => $this->author->username,
-            'created' => $this->created_at,
-            'updated' => $this->updated_at,
+            'genres' => $this->genres()->pluck('name'),
         ];
     }
 }

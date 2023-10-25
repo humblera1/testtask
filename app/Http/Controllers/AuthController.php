@@ -13,7 +13,7 @@ class AuthController extends Controller
         $fields = $request->validate([
             'username' => ['required', 'string', 'unique:authors', 'max:255'],
             'email' => ['required', 'string', 'unique:authors,email', 'max:255'],
-            'password' => ['required', 'string'],
+            'password' => ['required', 'confirmed', 'string'],
         ]);
 
         $author = Author::create([
@@ -47,13 +47,13 @@ class AuthController extends Controller
 
             return response([
                 'token' => $token,
-                'message' => 'login success',
+                'message' => 'You are successfully login',
                 'status' => 'success',
             ], 200);
         }
 
         return response([
-            'message' => 'u have a bad creds :(',
+            'message' => 'Provided credentials are incorrect',
             'status' => 'failed',
         ], 401);
 
@@ -64,18 +64,29 @@ class AuthController extends Controller
         auth()->user()->tokens()->delete();
 
         return response([
-            'message' => 'logout success',
+            'message' => 'You are successfully logout',
             'status' => 'success',
         ], 200);
     }
 
-    public function logged_user()
+    public function me()
     {
-        $loggedUser = auth()->user();
+        return auth()->user();
     }
 
-    public function test(Request $request)
+    public function changePassword(Request $request)
     {
-        return $request->all();
+        $request->validate([
+            'password' => ['required', 'confirmed'],
+        ]);
+
+        $author = auth()->user();
+        $author->password = Hash::make($request->password);
+        $author->save();
+
+        return response([
+            'message' => 'Your password has been successfully changed',
+            'status' => 'success',
+        ], 200);
     }
 }

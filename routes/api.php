@@ -23,23 +23,15 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
 
-//Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//    return $request->user();
-//});
+
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-//Route::post('/get-token', [AuthController::class, 'getToken']);
 
 Route::resource('books', BookController::class);
 Route::resource('authors', AuthorController::class);
 Route::get('/genres', [GenreController::class, 'index']);
-
-
 
 
 //Protected routes
@@ -51,10 +43,11 @@ Route::group(['middleware' => ['auth:sanctum']], function() {
     Route::delete('/books/{book}', [BookController::class, 'destroy']);
 
     Route::put('/authors/{author}', [AuthorController::class, 'update']);
+    Route::patch('/authors/{author}', [AuthorController::class, 'update']);
 
+    Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
-
-    Route::post('/test', [AuthController::class, 'test']);
+    Route::post('/change-password', [AuthController::class, 'changePassword']);
 });
 
 //Route::get('/authors', function () {
