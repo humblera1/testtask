@@ -18,4 +18,13 @@ class Genre extends Model
     {
         return $this->belongsToMany(Book::class);
     }
+
+    public function toArray()
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+//            'books' => Book::has('genres')->paginate($perPage = 5),
+        ];
+    }
 }

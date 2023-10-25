@@ -4,11 +4,11 @@ namespace App\Enums;
 
 use Filament\Support\Contracts\HasLabel;
 
-enum BookTypeEnum: int implements HasLabel
+enum BookTypeEnum: string implements HasLabel
 {
-    case Graphic = 1;
-    case Digit = 2;
-    case Print = 3;
+    case Graphic = 'graphic';
+    case Digit = 'digit';
+    case Print = 'print';
 
     public function getLabel(): ?string
     {

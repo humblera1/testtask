@@ -2,8 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\BookTypeEnum;
+use App\Models\Author;
 use App\Models\Book;
+use App\Models\Genre;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
 
 class BookController extends Controller
 {
@@ -12,7 +17,7 @@ class BookController extends Controller
      */
     public function index()
     {
-        return Book::all();
+        return Book::paginate($perPage = 5);
     }
 
     /**
@@ -20,12 +25,22 @@ class BookController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $fields = $request->validate([
             'title' => ['required', 'string', 'unique:books', 'max:255'],
-            'type' => ['required'],
+            'type' => [new Enum(BookTypeEnum::class)],
+            'genre' => ['required', Rule::in(Genre::pluck('name'))],
         ]);
 
-        return Book::create($request->all());
+        $fields['author_id'] = auth()->user()->id;
+
+
+        $model = Book::create($fields);
+
+        $genre = Genre::where(['name' => $fields['genre']])->first();
+
+        $model->genres()->attach($genre->id);
+
+        return response($model);
     }
 
     /**
@@ -41,6 +56,29 @@ class BookController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $book = Book::find($id);
+
+        $fields = $request->validate([
+            'title' => ['string', 'unique:books', 'max:255'],
+            'type' => [new Enum(BookTypeEnum::class)],
+            'genre' => [Rule::in(Genre::pluck('name'))],
+        ]);
+
+        if (auth()->user()->id === $book->author_id) {
+
+            $book->update($request->all());
+
+            if ($genre = Genre::where(['name' => $fields['genre']])->first()) {
+                $book->genres()->sync($genre->id);
+            }
+
+            return $book;
+        }
+
+        return response([
+            'message' => 'this book belongs to another author',
+            'status' => 'failed',
+        ], 403);
 
     }
 
@@ -49,6 +87,32 @@ class BookController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $book = Book::find($id);
+
+        if (auth()->user()->id === $book->author_id) {
+
+            Book::destroy($id);
+
+            return response([
+                'message' => 'book has been deleted',
+                'status' => 'success',
+            ], 200);
+
+        }
+
+        return response([
+            'message' => 'this book belongs to another author',
+            'status' => 'failed',
+        ], 403);
     }
+
+    /**
+     * Search for a books with specified author name
+     */
+//    public function search(string $author_username)
+//    {
+//        $author = Author::where(['username' => 'Test Author'])->get();
+//
+//        return Book::where(['author_id' => $author['id']])->get();
+//    }
 }

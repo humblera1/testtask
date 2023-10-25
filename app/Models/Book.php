@@ -31,4 +31,17 @@ class Book extends Model
     {
         return $this->belongsToMany(Genre::class);
     }
+
+    public function toArray()
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'genres' => $this->genres,
+            'type' => $this->type,
+            'author' => $this->author->username,
+            'created' => $this->created_at,
+            'updated' => $this->updated_at,
+        ];
+    }
 }
