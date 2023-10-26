@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\LogActivity;
 use App\Models\Author;
 use Illuminate\Http\Request;
 
@@ -10,17 +11,20 @@ class AuthorController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        LogActivity::makeLog("request to show all authors", $request);
         return Author::paginate($perPage = 5);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $id, Request $request)
     {
         $author = Author::find($id);
+
+        LogActivity::makeLog("request to show author with id {$id}", $request);
 
         return [
             'data' => $author,
@@ -44,15 +48,19 @@ class AuthorController extends Controller
 
             $author->update($fields);
 
+            LogActivity::makeLog("updating author with id {$id}", $request);
+
             return response([
-                'message' => 'your data has been updated',
+                'message' => 'Your data has been updated',
                 'status' => 'success',
                 'data' => $author,
             ], 200);
         }
 
+        LogActivity::makeLog("attempt to update author with id {$id}", $request);
+
         return response([
-            'message' => 'oops bad creds',
+            'message' => 'You can\'t edit or delete another author',
             'status' => 'failed',
         ], 403);
     }

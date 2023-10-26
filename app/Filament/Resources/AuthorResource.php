@@ -11,7 +11,9 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Log;
 
 class AuthorResource extends Resource
 {
@@ -44,15 +46,26 @@ class AuthorResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('username')
-                    ->searchable(),
+                    ->searchable()
+                    ->color('primary'),
                 Tables\Columns\TextColumn::make('email')
-                    ->searchable(),
+                    ->searchable()
+                    ->icon('heroicon-m-envelope'),
+                Tables\Columns\TextColumn::make('books')
+                    ->state(function (Model $record): int {
+                        return $record->books()->count();
+                    })
+                    ->label('Book Amount'),
             ])
             ->filters([
                 //
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->before(function($record) {
+                        Log::channel('daily')->info("author {$record->username} has been deleted");
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

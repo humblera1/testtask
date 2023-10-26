@@ -12,6 +12,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Log;
 
 class GenreResource extends Resource
 {
@@ -25,7 +26,7 @@ class GenreResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('name')
                     ->required()
-                    ->unique()
+                    ->unique(ignorable: fn ($record) => $record)
                     ->maxLength(255),
             ]);
     }
@@ -35,13 +36,18 @@ class GenreResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
+                    ->searchable()
+                    ->color('primary'),
             ])
             ->filters([
                 //
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->before(function($record) {
+                        Log::channel('daily')->info("genre '{$record->name}' has been deleted");
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

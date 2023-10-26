@@ -6,14 +6,15 @@ use App\Enums\BookTypeEnum;
 use App\Filament\Resources\BookResource\Pages;
 use App\Filament\Resources\BookResource\RelationManagers;
 use App\Models\Book;
-use App\Models\Genre;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules\Enum;
 
 class BookResource extends Resource
@@ -46,18 +47,16 @@ class BookResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('author.username')
-                    ->sortable()
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('title')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('type')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('title')
+                    ->searchable()
+                    ->sortable()
+                    ->color('primary'),
                 Tables\Columns\TextColumn::make('genres.name')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('type'),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime('d.m.Y (в H:i:s)')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->dateTime('d.m.Y (в H:i:s)'),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime('d.m.Y (в H:i:s)')
                     ->sortable()
@@ -71,6 +70,10 @@ class BookResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->before(function($record) {
+                        Log::channel('daily')->info("'{$record->title}' book has been deleted");
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

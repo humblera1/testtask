@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\BookTypeEnum;
+use App\Helpers\LogActivity;
 use App\Models\Author;
 use App\Models\Book;
 use App\Models\Genre;
@@ -15,8 +16,9 @@ class BookController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        LogActivity::makeLog('request to show all books', $request);
         return Book::paginate($perPage = 5);
     }
 
@@ -40,14 +42,18 @@ class BookController extends Controller
 
         $model->genres()->attach($genre->id);
 
+        LogActivity::makeLog("creating a new book named {$fields['title']}", $request);
+
         return response($model);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $id, Request $request)
     {
+        LogActivity::makeLog("request to show a book with id {$id}", $request);
+
         return Book::find($id);
     }
 
@@ -71,12 +77,17 @@ class BookController extends Controller
             //Логика сохранения жанра книги: если передать новый жанр, которого у книги нет,
             //он будет добавлен; если передать его повторно, он будет удалён
 
-            if ($genre = Genre::where(['name' => $fields['genre']])->first()) {
+            if (isset($fields['genre'])) {
+                $genre = Genre::where(['name' => $fields['genre']])->first();
                 $book->genres()->toggle($genre->id);
             }
 
+            LogActivity::makeLog("updating a book with id {$id}", $request);
+
             return $book;
         }
+
+        LogActivity::makeLog("attempt to update a book owned by another author", $request);
 
         return response([
             'message' => 'This book belongs to another author. You can\'t edit or delete it',
@@ -88,7 +99,7 @@ class BookController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(string $id, Request $request)
     {
         $book = Book::find($id);
 
@@ -96,12 +107,16 @@ class BookController extends Controller
 
             Book::destroy($id);
 
+            LogActivity::makeLog("destroying a book with id {$id}", $request);
+
             return response([
                 'message' => 'Book has been deleted',
                 'status' => 'success',
             ], 200);
 
         }
+
+        LogActivity::makeLog("attempt to destroy a book owned by another author", $request);
 
         return response([
             'message' => 'This book belongs to another author. You can\'t edit or delete it',

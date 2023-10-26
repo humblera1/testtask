@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\LogActivity;
 use App\Models\Author;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -29,6 +30,8 @@ class AuthController extends Controller
             'token' => $token,
         ];
 
+        LogActivity::makeLog("registration of a new author with id {$author->id}", $request);
+
         return response($response, 201);
     }
 
@@ -45,12 +48,16 @@ class AuthController extends Controller
 
             $token = $author->createToken('trial')->plainTextToken;
 
+            LogActivity::makeLog("author login", $request);
+
             return response([
                 'token' => $token,
                 'message' => 'You are successfully login',
                 'status' => 'success',
             ], 200);
         }
+
+        LogActivity::makeLog("attempt to login with bad creds", $request);
 
         return response([
             'message' => 'Provided credentials are incorrect',
@@ -62,6 +69,8 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         auth()->user()->tokens()->delete();
+
+        LogActivity::makeLog("author logout", $request);
 
         return response([
             'message' => 'You are successfully logout',
@@ -84,8 +93,10 @@ class AuthController extends Controller
         $author->password = Hash::make($request->password);
         $author->save();
 
+        LogActivity::makeLog("author {$author->username} changed password", $request);
+
         return response([
-            'message' => 'Your password has been successfully changed',
+            'message' => 'Your password has been changed successfully',
             'status' => 'success',
         ], 200);
     }
