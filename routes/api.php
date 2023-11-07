@@ -23,41 +23,43 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::controller(AuthController::class)->group(function () {
+    Route::post('/register', 'register');
+    Route::post('/login', 'login');
+});
 
+Route::controller(BookController::class)->group(function () {
+    Route::get('/books', 'index');
+    Route::get('/books/{book}', 'show');
+});
 
+Route::controller(AuthorController::class)->group(function () {
+    Route::get('/authors', 'index');
+    Route::get('/authors/{author}', 'show');
+});
 
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
-
-Route::resource('books', BookController::class);
-Route::resource('authors', AuthorController::class);
 Route::get('/genres', [GenreController::class, 'index']);
+Route::get('/genres/{genre}', [GenreController::class, 'show']);
 
 
 //Protected routes
 Route::group(['middleware' => ['auth:sanctum']], function() {
+    Route::controller(BookController::class)->group(function () {
+        Route::post('/books', 'store');
+        Route::put('/books/{book}', 'update');
+        Route::patch('/books/{book}', 'update');
+        Route::delete('/books/{book}', 'destroy');
+    });
 
-    Route::post('/books', [BookController::class, 'store']);
-    Route::put('/books/{book}', [BookController::class, 'update']);
-    Route::patch('/books/{book}', [BookController::class, 'update']);
-    Route::delete('/books/{book}', [BookController::class, 'destroy']);
+    Route::controller(AuthorController::class)->group(function () {
+        Route::put('/authors/{author}', 'update');
+        Route::patch('/authors/{author}', 'update');
+        Route::delete('/authors/{author}', 'destroy');
+    });
 
-    Route::put('/authors/{author}', [AuthorController::class, 'update']);
-    Route::patch('/authors/{author}', [AuthorController::class, 'update']);
-
-    Route::get('/me', [AuthController::class, 'me']);
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::post('/change-password', [AuthController::class, 'changePassword']);
-});
-
-//Route::get('/authors', function () {
-//    return Author::all();
-//});
-
-
-//Route::get('books/search/{author}', [BookController::class, 'search']);
-
-
-Route::get('/genres', function () {
-    return Genre::all();
+    Route::controller(AuthController::class)->group(function () {
+        Route::get('/me', 'me');
+        Route::post('/logout', 'logout');
+        Route::post('/change-password', 'changePassword');
+    });
 });

@@ -35,7 +35,6 @@ class BookController extends Controller
 
         $fields['author_id'] = auth()->user()->id;
 
-
         $model = Book::create($fields);
 
         $genre = Genre::where(['name' => $fields['genre']])->first();
@@ -64,7 +63,7 @@ class BookController extends Controller
     {
         $book = Book::find($id);
 
-        if (auth()->user()->id === $book->author_id) {
+        if (!empty($book) && auth()->user()->id === $book->author_id) {
 
         $fields = $request->validate([
             'title' => ['string', 'unique:books', 'max:255'],
@@ -103,7 +102,7 @@ class BookController extends Controller
     {
         $book = Book::find($id);
 
-        if (auth()->user()->id === $book->author_id) {
+        if (!empty($book) && auth()->user()->id === $book->author_id) {
 
             Book::destroy($id);
 

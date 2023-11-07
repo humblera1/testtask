@@ -44,7 +44,7 @@ class AuthController extends Controller
 
         $author = Author::where('email', $fields['email'])->first();
 
-        if ($author || Hash::check($fields['password'], $author->password)) {
+        if ($author && Hash::check($fields['password'], $author->password)) {
 
             $token = $author->createToken('trial')->plainTextToken;
 

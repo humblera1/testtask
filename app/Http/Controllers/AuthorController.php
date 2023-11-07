@@ -26,10 +26,17 @@ class AuthorController extends Controller
 
         LogActivity::makeLog("request to show author with id {$id}", $request);
 
-        return [
-            'data' => $author,
-            'books' => $author->books,
-        ];
+        if (!empty($author)) {
+            return [
+                'data' => $author,
+                'books' => $author->books,
+            ];
+        }
+
+        return response([
+            'message' => 'Author Not Found',
+        ], 404);
+
     }
 
     /**
@@ -58,6 +65,28 @@ class AuthorController extends Controller
         }
 
         LogActivity::makeLog("attempt to update author with id {$id}", $request);
+
+        return response([
+            'message' => 'You can\'t edit or delete another author',
+            'status' => 'failed',
+        ], 403);
+    }
+
+    public function destroy(Request $request, string $id)
+    {
+        if ($id == auth()->user()->id){
+
+            Author::destroy($id);
+
+            LogActivity::makeLog("author with id {$id} has left us", $request);
+
+            return response([
+                'message' => 'Goodbye Forever',
+                'status' => 'success',
+            ], 200);
+        }
+
+        LogActivity::makeLog("attempt to delete author with id {$id}", $request);
 
         return response([
             'message' => 'You can\'t edit or delete another author',

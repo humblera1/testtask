@@ -14,4 +14,9 @@ class GenreController extends Controller
     {
         return Genre::paginate($perPage = 5);
     }
+
+    public function show(string $id)
+    {
+        return Genre::find($id);
+    }
 }
